@@ -6,7 +6,6 @@ This is the code for the paper [PropTest: Automatic Property Testing for Improve
 
 # Environmnet
 
----
 Clone recursively:
 ```bash
 git clone --recurse-submodules https://github.com/uvavision/PropTest.git
@@ -29,8 +28,6 @@ You can use ```download_models.sh``` to download the models.
 
 # Running the Code
 
----
-
 The code can be run using the following command:
     
 ```
@@ -40,7 +37,6 @@ CONFIG_NAMES=your_config_name python main_batch.py
 
 # Citation
 
----
 Please cite our paper if you find our method or code useful:
 ```
 @article{koo2024proptest,
