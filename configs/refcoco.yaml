@@ -1,0 +1,62 @@
+dataset:
+  data_path: ./coco
+  dataset_name: RefCOCO
+  split_by: unc  # [google, unc]
+  split: testA
+  version: refcoco # refcoco or refcoco+
+  batch_size: 20
+  max_samples:
+  start_sample: 0
+
+codex:
+  prompt: ./prompts/ViperGPT/refcoco_baseline_instruct.prompt
+  model: Llama-3-8B-Instruct                       # Model to use for Code Generation
+  testcase: True                                   # Generating Property test case before generating the code
+  testcase_prompt: ./prompts/RefCOCO_TestCaseGen.prompt
+  testcaseGen: True                                # Use property test case when generating the code
+  testcaseGen_prompt: ./prompts/RefCOCO_CodeGen.prompt
+
+
+fixed_code_file: ./prompts/fixed_code/glip.prompt
+
+results_dir: ./results/refcoco/
+
+load_models:
+  gpt_general: False
+  maskrcnn: True
+  clip: False
+  glip: True
+  owlvit: False
+  tcl: False
+  gpt_qa: False
+  depth: True
+  blip: True
+  saliency: False
+  xvlm: True
+  codex: True
+  llama2_general: False
+  llama2_guess: False
+  llama2_qa: False
+
+ratio_box_area_to_image_area: 0.03
+crop_larger_margin: False
+
+multiprocessing: False
+path_pretrained_models: './pretrained_models'
+execute_code: True
+blip_v2_model_type: blip2-flan-t5-xxl              # Change to blip2-flan-t5-xl for smaller GPUs
+blip_half_precision: True
+
+use_cached_codex: False                            # Use previously-computed Codex results
+cached_codex_path:                                 # Path to the csv results file from which to load previously generated Code results
+use_cached_test_code: False                        # Use previously-computed Property Test Code results
+cached_test_code_path:                             # Path to the csv results file from which to load previously generated Property Test Code results
+use_cached_codex2: False                           # ONLY use this when e2e!! Use previously generated sequential code results, Do not generate code
+cached_codex2_path:
+
+eval:
+    test_eval: False                               # Evaluate on the test set
+    eval_only: False                               # Only evaluate the results, do not generate new ones
+    eval_file:                                     # Path to the csv results file from which to load previously generated results
+    wo_VLM: False                                  # Not using fallback VLMs for ablation study
+    confusion_matrix: False                        # Generate confusion matrix for ablation study

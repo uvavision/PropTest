@@ -1,0 +1,14 @@
+multiprocessing: False
+path_pretrained_models: './pretrained_models'
+execute_code: True
+dataset:
+    data_path: './data'
+    max_samples:
+    start_sample: 0
+blip_v2_model_type: blip2-flan-t5-xxl  # Change to blip2-flan-t5-xl for smaller GPUs
+blip_half_precision: True
+# Add more changes here, following the same format as base_config.yaml
+codex:
+    prompt: ./prompts/ViperGPT/gqa_baseline.prompt
+    model: Llama-3-8B-Instruct
+fixed_code_file: ./prompts/fixed_code/blip2.prompt

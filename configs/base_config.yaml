@@ -1,0 +1,100 @@
+multiprocessing: False                              # Run the models and samples in parallel
+path_pretrained_models: './pretrained_models'       # Path to the pretrained models
+execute_code: False                                 # Execute the code after generating it. Only applies to main_batch
+e2e_execute: False                                  # Execute the code in e2e mode for PropTest
+
+dataset:                                            # Dataset configuration
+    data_path: './data'                             # Dataset path
+    split: ''                                       # Dataset split. If '', it assumes there is only one split
+    max_samples:                                    # Maximum number of samples to load 12579 is all samples
+    batch_size: 20                                  # Batch size
+    start_sample: 0                                 # Start sample index. Only used if max_samples is not None
+    dataset_name: 'MyDataset'                       # Dataset name
+
+load_models:                                        # Which pretrained models to load
+    maskrcnn: True
+    clip: False
+    glip: False
+    owlvit: False
+    tcl: False
+    gpt_qa: False
+    gpt_general: False
+    gpt_guess: False
+    depth: False
+    blip: True
+    saliency: False
+    xvlm: False
+    codex: False
+    llama2_qa: False
+    llama2_general: True
+    llama2_guess: True
+    llama2_model: Llama-3-8B-Instruct
+    mPLUG_owl: False
+
+detect_thresholds:                                  # Thresholds for the models that perform detection
+    glip: 0.5
+    maskrcnn: 0.8
+    owlvit: 0.1
+ratio_box_area_to_image_area: 0.0                   # Any detected patch under this size will not be returned
+crop_larger_margin: True                            # Increase size of crop by 10% to include more context
+
+verify_property:                                    # Parameters for verify_property
+    model: xvlm                                     # Model to use for verify_property
+    thresh_clip: 0.6
+    thresh_tcl: 0.25
+    thresh_xvlm: 0.6
+
+best_match_model: xvlm                              # Which model to use for best_[image, text]_match
+
+gpt3:                                               # GPT-3 configuration
+    n_votes: 1                                      # Number of tries to use for GPT-3. Use with temperature > 0
+    qa_prompt: ./prompts/gpt3/gpt3_qa.txt
+    temperature: 0.                                 # Temperature for GPT-3. Almost deterministic if 0
+    model: gpt-4o                                   # See openai.Model.list() for available models
+    guess_prompt: ./prompts/gpt3/gpt3_process_guess.txt
+
+llama2:
+    qa_prompt:  ./prompts/llama2/llama2_qa.txt
+    guess_prompt: ./prompts/llama3/llama3_process_guess.txt
+    general_prompt: ./prompts/gpt3/gpt3_qa.txt
+
+codex:
+    temperature: 0.                                 # Temperature for Codex. (Almost) deterministic if 0
+    best_of: 1                                      # Number of tries to choose from. Use when temperature > 0
+    max_tokens: 512                                 # Maximum number of tokens to generate for Codex
+    prompt: ./prompts/chatapi.prompt                # Codex prompt file, which defines the API. (doesn't support video for now due to token limits)
+    model: gpt-3.5-turbo                            # Codex model to use. [gpt-3.5-turbo, gpt-4]. See openai.Model.list() for available models
+    testcase: True                                  # Generating Property test case before generating the code
+    testcase_prompt: ./prompts/GQA_TestCaseGen.prompt
+    testcaseGen: True                               # Use property test case when generating the code
+    testcaseGen_prompt: ./prompts/GQA_CodeGen.prompt
+
+
+# Saving and loading parameters
+save: True                                          # Save the results to a file
+save_new_results: True                              # If False, overwrite the results file
+results_dir: ./results/gqa/trials                   # Directory to save the results
+use_cache: False                                    # Use cache for the models that support it (now, GPT-3)
+clear_cache: False                                  # Clear stored cache
+use_cached_codex: False                             # Use previously generated code results, Do not generate code
+use_cached_test_code: False
+use_cached_codex2: False
+cached_codex_path:
+cached_test_code_path:
+cached_codex2_path:
+log_every: 1                                        # Log accuracy every n batches
+wandb: False                                        # Use Weights and Biases
+
+blip_half_precision: True                           # Use 8bit (Faster but slightly less accurate) for BLIP if True
+blip_v2_model_type: blip2-flan-t5-xxl               # Which model to use for BLIP-2
+
+use_fixed_code: False                               # Use a fixed code for all samples (do not generate with Codex)
+fixed_code_file: ./prompts/fixed_code/blip2.prompt  # Path to the fixed code file
+
+# Evaluation
+eval:
+    test_eval: False                                # Evaluate on the test set
+    soft_acc: False                                 # Use soft accuracy (see VQA paper)
+    eval_only: False                                # Only evaluate the results, do not generate new ones
+    eval_file:                                      # File path to evaluate
+    wo_VLM: False
