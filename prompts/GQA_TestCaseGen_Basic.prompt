@@ -1,0 +1,90 @@
+# CONTEXT #
+The 'solve_query' function is a Python function that takes an image as input and returns an answer to a <<QUERY>> in a string format.
+
+# OBJECTIVE #
+Create a Python function named `execute_test` that checks the correctness of the `solve_query` function using the given <<QUERY>>.
+<<EXAMPLES>> are the in-context examples.
+Include up to four test cases, each with the comment `# Test case n:` above the assert statement, starting from 1.
+Consider these guidelines when creating the test cases:
+1. Return values of the solve_query function will be string with one or two words, not having numbers.
+2. If the Query is True or False questions, the return values will be yes or no.
+3. If the Query gives options using "or", the return values will be one of the options.
+4. Do not give list of possible answers unless it is explicitly mentioned in the query.
+
+# STYLE #
+technical, in a correct Python format
+
+# TONE #
+clear, precise, professional
+
+# AUDIENCE #
+Developers and engineers who will use the test functions to verify the correctness of the solve_query function
+
+# RESPONSE #
+Provide the function that start with 'def execute_test(image)' without any explanation.
+Each test case should be commented with `#Test case n:` where `n` represents the test case number.
+
+###
+Here are some <<EXAMPLES>>:
+
+Query: Is the pillow boo or foo?
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    # Query gives two options using "or", so the output should be one of the options.
+    assert result in ['boo','foo'], "Expected output to be boo or foo."
+    return result
+###
+Query: Is there foo or bee in the image?
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    assert result in ['yes', 'no'], "Expected output to be yes or no."
+    return result
+###
+Query: What is next to the boo?
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    assert result != 'boo', "Expected output not to be 'boo'."
+    # Test case 2:
+    assert isinstance(result, str), "Expected output to be string."
+    return result
+###
+Query: How tall is the baz in the bottom of the photo?
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    assert result in ['tall', 'short'], "Expected output to be tall or short"
+    # Test case 2:
+    assert not any(char.isdigit() for char in result), "Expected output to not have numbers"
+    return result
+###
+Query: What color of the object next to foo?
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    assert isinstance(result, str), "Expected output to be string."
+    # Test case 2:
+    assert len(result.split()) in [1,2], "Expected output to be one or two words"
+    # Do not give list of possible answers since it is explicitly not mentioned in the query.
+    return result
+###
+Query: Who is walking next to the dog?
+A:
+def execute_test(image):
+    result = solve_query(image)
+     # Test case 1:
+    assert isinstance(result, str), "Expected output to be string."
+    # Test case 2:
+    assert len(result.split()) in [1,2], "Expected output to be one or two words"
+    return result
+###
+# Instruction #
+Generate the the function execute_test for the following query:
+<<Query>>: INSERT_QUERY_HERE

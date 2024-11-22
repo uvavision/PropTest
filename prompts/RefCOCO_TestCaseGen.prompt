@@ -1,0 +1,110 @@
+Q: Your task is to write a function using Python containing tests up to four to check the correctness of a solve_query function that solves a provided answer to the query.
+You must write the comment "#Test case n:" on a separate line directly above each assert statement,
+where n represents the test case number, starting from 1 and increasing by one for each subsequent test case.
+
+Here are some examples:
+
+Query: woman
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    assert 'yes' in result.simple_query("Is there woman?").lower(), "Expected output to have woman"
+    return result
+
+Query: brown bag
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    assert 'yes' in result.simple_query("Is there a bag?").lower(), "Expected output to be a bag"
+    # Test case 2:
+    assert bool_to_yesno(result.verify_property("bag", "brown")), "Expected output to be a brown bag"
+    return result
+
+Query: bus on the left like open door and blue
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    assert 'yes' in result.simple_query("Is there a bus").lower(), "Expected output to have a bus"
+    # Test case 2:
+    # Do not check the spatial information (ex: front, back, left, right, next to, etc.) - on the left
+    assert bool_to_yesno(result.verify_property("bus", "blue")), "Expected output to be a bus with an open door"
+    return result
+
+Query: boy in far left in red shirt
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    assert 'yes' in result.simple_query("Is there a boy?").lower(), "Expected output to be a boy"
+    # Test case 2:
+    # Do not check the spatial information - far left
+    assert bool_to_yesno(result.verify_property("boy", "red shirt")), "Expected output to be a boy in red shirt"
+    return result
+
+Query: right car
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    # Do not check the spatial information (ex: front, back, left, right, next to, etc.) - right
+    assert 'yes' in result.simple_query("Is there a car?").lower(), "Expected output to be a car"
+    return result
+
+Query: person in the back with the blue gloves
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    assert 'yes' in result.simple_query("Is there a person?").lower(), "Expected output to be a person"
+    # Test case 2:
+    # Do not check the spatial information (ex: front, back, left, right, next to, back, etc.) - in the back
+    assert bool_to_yesno(result.verify_property("person", "blue gloves")), "Expected output to be a person with the blue gloves"
+    return result
+
+Query: person front with dress jumping
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    assert 'yes' in result.simple_query("Is there a person?").lower(), "Expected output to be a person"
+    # Do not check the spatial information (ex: front, back, left, right, next to, back, etc.) - front
+    # Test case 2:
+    assert bool_to_yesno(result.verify_property("person", "dress")), "Expected output to be a person with dress"
+    # Test case 3:
+    assert bool_to_yesno(result.verify_property("person", "jumping")), "Expected output to be a person jumping"
+    return result
+
+Query: boy eating
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    assert 'yes' in result.simple_query("Is there a boy?").lower(), "Expected output to be a boy"
+    # Test case 2:
+    assert bool_to_yesno(result.verify_property("boy", "eating")), "Expected output to be a boy eating"
+    return result
+
+Query: girl third from right front row
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    # Do not check the spatial information - third from right front row
+    assert 'yes' in result.simple_query("Is there a girl?").lower(), "Expected output to be a girl"
+    return result
+
+Query: blue
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    assert 'yes' in simple_query("Is this blue?").lower(), "Expected output to be blue"
+    return result
+
+Consider the following guidelines:
+- Only answer with a function starting with def execute_test.
+
+Query: INSERT_QUERY_HERE

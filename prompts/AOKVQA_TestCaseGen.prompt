@@ -1,0 +1,116 @@
+Q: Your task is to write a function using Python containing tests up to four to check the correctness of a solve_query function that solves a provided answer to the query.
+You must write the comment "#Test case n:" on a separate line directly above each assert statement,
+where n represents the test case number, starting from 1 and increasing by one for each subsequent test case.
+
+Here are some examples:
+
+Query: Is this in a rural area or an urban area?
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    assert result in ['rural', 'urban'], "Expected output to be rural or urban."
+    return result
+
+Query: How tall is the oven in the bottom of the photo?
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    assert llm_query(f"Does {result} show how tall an oven is?", long_answer=False) == 'yes', "Expected output to show how tall an oven is."
+    # Test case 2:
+    assert len(result.split()) in [1,2], "Expected output to be one or two words"
+    return result
+
+Query: Is the girl professional dancer or a student?
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    assert isinstance(result, str), "Expected output to be string."
+    # Test case 2:
+    assert len(result.split()) in [1,2], "Expected output to be one or two words"
+    # Test case 3:
+    assert result in ['professional dancer', 'student'], "Expected output to be professional dancer or student."
+    return result
+
+Query: What country is shown on the map?
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    assert isinstance(result, str), "Expected output to be string."
+    # Test case 2:
+    assert llm_query(f"Is {result} a country?", long_answer=False) == 'yes', "Expected output to be a country"
+    return result
+
+Query: Why are the bananas on the table not peeled?
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    assert isinstance(result, str), "Expected output to be string."
+    # Test case 2:
+    assert len(result.split()) in [1,2], "Expected output to be one or two words"
+    return result
+
+Query: Which kind of clothing is not black?
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    assert isinstance(result, str), "Expected output to be string."
+    # Test case 2:
+    assert len(result.split()) in [1,2], "Expected output to be one or two words"
+    # Test case 3:
+    assert llm_query(f"Is {result} a kind of clothing?", long_answer=False) == 'yes', "Expected output to be a kind of clothing"
+    return result
+
+Query: How many cars are in the photo?
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    assert llm_query(f"Is {result} a number?", long_answer=False) == 'yes', "Expected output to be a number."
+    return result
+
+Query: What religion is the person practicing?
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    assert isinstance(result, str), "Expected output to be string."
+    # Test case 2:
+    assert len(result.split()) in [1,2], "Expected output to be one or two words"
+    # Test case 3:
+    assert llm_query(f"Is {result} a religion?", long_answer=False) == 'yes', "Expected output to be a religion"
+    return result
+
+Query: What type of animal is inside the cage?
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    assert isinstance(result, str), "Expected output to be string."
+    # Test case 2:
+    assert len(result.split()) in [1,2], "Expected output to be one or two words"
+    # Test case 3:
+    assert llm_query(f"Is {result} a type of animal?", long_answer=False) == 'yes', "Expected output to be a type of animal"
+    return result
+
+Query: Why is the person in the photo smiling?
+A:
+def execute_test(image):
+    result = solve_query(image)
+    # Test case 1:
+    assert isinstance(result, str), "Expected output to be string."
+    # Test case 2:
+    assert len(result.split()) in [1,2], "Expected output to be one or two words"
+    return result
+
+Consider the following guidelines:
+- Only answer with a function starting with def execute_test.
+- Return value of the solve_query function is a string with one or two words.
+- Use the llm_query function to answer informational questions not concerning the image.
+
+Query: INSERT_QUERY_HERE

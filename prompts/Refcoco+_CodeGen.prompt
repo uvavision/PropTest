@@ -1,0 +1,385 @@
+# Context #
+We are working on a visual grounding task, which involves identifying and returning the specific area of an image that corresponds to a given << QUERY >>. Using the << IMAGE_PATCH_CLASS >>, we aim to generate a Python function named `execute_command` to solve this task.
+The function should account for spatial information such as orientation (e.g., front, back) and relative positioning (e.g., next to, above).
+
+<< IMAGE_PATCH_CLASS >>
+import math
+
+class ImagePatch:
+    """
+    Represents a cropped section of an image centered around a specific object.
+
+    Attributes:
+    ----------
+    cropped_image : array_like
+        Cropped image section.
+    left, lower, right, upper : int
+        Coordinates of the crop's bounding box in the original image.
+
+    Methods:
+    -------
+    find(object_name: str) -> List[ImagePatch]
+        Finds and returns image patches containing the specified object.
+    exists(object_name: str) -> bool
+        Checks if the specified object is in the image.
+    verify_property(property: str) -> bool
+        Verifies if the specified property is met by the object.
+    compute_depth() -> float
+        Computes the median depth of the image crop.
+    crop(left: int, lower: int, right: int, upper: int) -> ImagePatch
+        Returns a new cropped ImagePatch.
+    overlaps_with(left: int, lower: int, right: int, upper: int) -> bool
+        Checks if a crop overlaps with this one.
+    """
+
+    def __init__(self, image, left: int = None, lower: int = None, right: int = None, upper: int = None):
+        """Initializes an ImagePatch object by cropping the image at the given coordinates."""
+        if left is None and right is None and upper is None and lower is None:
+            self.cropped_image = image
+            self.left, self.lower, self.right, self.upper = 0, 0, image.shape[2], image.shape[1]
+        else:
+            self.cropped_image = image[:, lower:upper, left:right]
+            self.left, self.lower, self.right, self.upper = left, lower, right, upper
+
+        self.width, self.height = self.cropped_image.shape[2], self.cropped_image.shape[1]
+        self.horizontal_center = (self.left + self.right) / 2
+        self.vertical_center = (self.lower + self.upper) / 2
+
+    def find(self, object_name: str) -> List[ImagePatch]:
+        """Finds and returns a list of image patches containing the specified object.
+
+        Examples
+        --------
+        >>> # return the foo
+        >>> def execute_command(image) -> List[ImagePatch]:
+        >>>     image_patch = ImagePatch(image)
+        >>>     foo_patches = image_patch.find("foo")
+        >>>     return foo_patches
+        """
+        return find_in_image(self.cropped_image, object_name)
+
+    def exists(self, object_name: str) -> bool:
+        """Checks if the specified object is found in the image.
+
+        Examples
+        -------
+        >>> # Are there both foos and garply bars in the photo?
+        >>> def execute_command(image) -> str:
+        >>>     image_patch = ImagePatch(image)
+        >>>     is_foo = image_patch.exists("foo")
+        >>>     is_garply_bar = image_patch.exists("garply bar")
+        >>>     return bool_to_yesno(is_foo and is_garply_bar)
+        """
+        return len(self.find(object_name)) > 0
+
+    def verify_property(self, object_name: str, property: str) -> bool:
+        """Verifies if the specified property is met by the object.
+
+        Examples
+        -------
+        >>> # Do the letters have blue color?
+        >>> def execute_command(image) -> str:
+        >>>     image_patch = ImagePatch(image)
+        >>>     letters_patches = image_patch.find("letters")
+        >>>     # Question assumes only one letter patch
+        >>>     return bool_to_yesno(letters_patches[0].verify_property("letters", "blue"))
+        """
+        return verify_property(self.cropped_image, object_name, property)
+
+    def compute_depth(self) -> float:
+        """Computes the median depth of the image crop.
+
+        Examples
+        --------
+        >>> # the bar furthest away
+        >>> def execute_command(image) -> ImagePatch:
+        >>>     image_patch = ImagePatch(image)
+        >>>     bar_patches = image_patch.find("bar")
+        >>>     bar_patches.sort(key=lambda bar: bar.compute_depth())
+        >>>     return bar_patches[-1]
+        """
+        depth_map = compute_depth(self.cropped_image)
+        return depth_map.median()
+
+    def crop(self, left: int, lower: int, right: int, upper: int) -> ImagePatch:
+        """Returns a new cropped ImagePatch."""
+        return ImagePatch(self.cropped_image, left, lower, right, upper)
+
+    def overlaps_with(self, left: int, lower: int, right: int, upper: int) -> bool:
+        """Checks if a crop with the given coordinates overlaps with this one.
+
+        Examples
+        --------
+        >>> # black foo on top of the qux
+        >>> def execute_command(image) -> ImagePatch:
+        >>>     image_patch = ImagePatch(image)
+        >>>     qux_patches = image_patch.find("qux")
+        >>>     qux_patch = qux_patches[0]
+        >>>     foo_patches = image_patch.find("black foo")
+        >>>     for foo in foo_patches:
+        >>>         if foo.vertical_center > qux_patch.vertical_center:
+        >>>             return foo
+        """
+        return self.left <= right and self.right >= left and self.lower <= upper and self.upper >= lower
+
+def best_image_match(list_patches: List[ImagePatch], content: List[str], return_index=False) -> Union[ImagePatch, int]:
+    """Returns the patch most likely to contain the content."""
+    return best_image_match(list_patches, content, return_index)
+
+def distance(patch_a: ImagePatch, patch_b: ImagePatch) -> float:
+    """Returns the distance between the edges of two ImagePatches.
+
+    Examples
+    --------
+    # Return the qux that is closest to the foo
+    >>> def execute_command(image):
+    >>>     image_patch = ImagePatch(image)
+    >>>     qux_patches = image_patch.find('qux')
+    >>>     foo_patches = image_patch.find('foo')
+    >>>     foo_patch = foo_patches[0]
+    >>>     qux_patches.sort(key=lambda x: distance(x, foo_patch))
+    >>>     return qux_patches[0]
+    """
+    return distance(patch_a, patch_b)
+
+#####################
+
+# Objective #
+Write a function named `execute_command` using Python and << IMAGE_PATCH_CLASS >> to answer the given << QUERY >>. Use the provided << ASSERTION_TESTS >> to understand the expected properties of the `ImagePatch` object that the function should return.
+Consider these guidelines when creating the function:
+ - Use base Python (comparison, sorting) for basic logical operations, left/right/up/down, math, etc.
+ - Consider the properties of the expected returned `ImagePatch` object from the << ASSERTION_TESTS >> to write the function.
+ - The function must only return an `ImagePatch` object. Do not return None.
+ - If the object in the query is not found directly, attempt to find a person and check if the person possesses or is associated with the specified object (e.g., wearing specific clothing).
+
+
+Here are some <<EXAMPLES>>:
+
+QUERY: black car just under stop sign
+ASSERTION_TESTS:
+# Test case 1
+assert 'yes' in result.simple_query("Is there a black car?").lower(), "Expected output to be a black car"
+
+Answer:
+def execute_command(image) -> ImagePatch:
+    # Return the car
+    image_patch = ImagePatch(image)
+    stop_sign_patches = image_patch.find("stop sign")
+    if len(stop_sign_patches) == 0:
+        stop_sign_patches = [image_patch]
+    stop_sign_patch = stop_sign_patches[0]
+    car_patches = image_patch.find("black car")
+    car_under_stop = []
+    for car in car_patches:
+        if car.upper < stop_sign_patch.upper:
+            car_under_stop.append(car)
+    # Find car that is closest to the stop sign
+    car_under_stop.sort(key=lambda car: car.vertical_center - stop_sign_patch.vertical_center)
+    # Remember: return the car
+    return car_under_stop[0]
+####
+QUERY: middle kid
+ASSERTION_TESTS:
+# Test case 1
+assert 'yes' in result.simple_query("Is there a kid?").lower(), "Expected output to be a kid"
+
+Answer:
+def execute_command(image) -> ImagePatch:
+    # Return the kid
+    image_patch = ImagePatch(image)
+    kid_patches = image_patch.find("kid")
+    if len(kid_patches) == 0:
+        kid_patches = [image_patch]
+    kid_patches.sort(key=lambda kid: kid.horizontal_center)
+    # Remember: return the kid
+    return kid_patches[len(kid_patches) // 2]  # Return the middle kid
+####
+QUERY: girl in white next to man in left
+ASSERTION_TESTS:
+# Test case 1
+assert 'yes' in result.simple_query("Is there a girl?").lower(), "Expected output to be a girl"
+# Test case 2
+assert bool_to_yesno(result.verify_property("girl", "white clothing")), "Expected output to be a girl with white clothing"
+
+Answer:
+def execute_command(image) -> ImagePatch:
+    # Return the girl
+    image_patch = ImagePatch(image)
+    girl_patches = image_patch.find("girl")
+    girl_in_white_patches = [g for g in girl_patches if g.verify_property("girl", "white clothing")]
+    if len(girl_in_white_patches) == 0:
+        girl_in_white_patches = girl_patches
+    man_patches = image_patch.find("man")
+    man_patches.sort(key=lambda man: man.horizontal_center)
+    leftmost_man = man_patches[0]  # First from the left
+    girl_in_white_patches.sort(key=lambda girl: distance(girl, leftmost_man))
+    girl_patch = girl_in_white_patches[0]
+    # Remember: return the girl
+    return girl_patch
+####
+QUERY: cow facing the camera
+ASSERTION_TESTS:
+# Test case 1
+assert 'yes' in result.simple_query("Is there a cow?").lower(), "Expected output to be a cow"
+
+Answer:
+def execute_command(image) -> ImagePatch:
+    # Return the cow
+    image_patch = ImagePatch(image)
+    cow_patches = image_patch.find("cow")
+    if len(cow_patches) == 0:
+        cow_patches = [image_patch]
+    cow_patch = best_image_match(list_patches=cow_patches, content=["cow facing the camera"])
+    # Remember: return the cow
+    return cow_patch
+####
+QUERY: dog to the left of the post who is closest to girl wearing a shirt with text that says "I love you"
+ASSERTION_TESTS:
+# Test case 1
+assert 'yes' in result.simple_query("Is there a dog?").lower(), "Expected output to be a dog"
+
+Answer:
+def execute_command(image) -> ImagePatch:
+    # Return the dog
+    image_patch = ImagePatch(image)
+    shirt_patches = image_patch.find("shirt")
+    if len(shirt_patches) == 0:
+        shirt_patches = [image_patch]
+    shirt_patch = best_image_match(list_patches=shirt_patches, content=["I love you shirt"])
+    post_patches = image_patch.find("post")
+    post_patches.sort(key=lambda post: distance(post, shirt_patch))
+    post_patch = post_patches[0]
+    dog_patches = image_patch.find("dog")
+    dogs_left_patch = [dog for dog in dog_patches if dog.left < post_patch.left]
+    if len(dogs_left_patch) == 0:
+        dogs_left_patch = dog_patches
+    dogs_left_patch.sort(key=lambda dog: distance(dog, post_patch))
+    dog_patch = dogs_left_patch[0]
+    # Remember: return the dog
+    return dog_patch
+####
+QUERY: chair to the right near the couch
+ASSERTION_TESTS:
+# Test case 1
+assert 'yes' in result.simple_query("Is there a chair?").lower(), "Expected output to be a chair"
+
+Answer:
+def execute_command(image)->ImagePatch:
+    # Return the chair
+    image_patch = ImagePatch(image)
+    chair_patches = image_patch.find("chair")
+    if len(chair_patches) == 0:
+        chair_patches = [image_patch]
+    elif len(chair_patches) == 1:
+        return chair_patches[0]
+    chair_patches_right = [c for c in chair_patches if c.horizontal_center > image_patch.horizontal_center]
+    couch_patches = image_patch.find("couch")
+    if len(couch_patches) == 0:
+        couch_patches = [image_patch]
+    couch_patch = couch_patches[0]
+    chair_patches_right.sort(key=lambda c: distance(c, couch_patch))
+    chair_patch = chair_patches_right[0]
+    # Remember: return the chair
+    return chair_patch
+####
+QUERY: number 17
+ASSERTION_TESTS:
+# Test case 1
+assert 'yes' in result.simple_query("Is there a person?").lower(), "Expected output to be a person"
+# Test case 2
+assert bool_to_yesno(result.exists("17")), "Expected output to be a person with number 17"
+
+Answer:
+def execute_command(image) -> ImagePatch:
+    # Return the person
+    image_patch = ImagePatch(image)
+    person_patches = image_patch.find("person")
+    for patch in person_patches:
+        if patch.exists("17"):
+            return patch
+    # Remember: return the person
+    return person_patches[0]
+####
+QUERY: balloon on the right and second from the bottom
+ASSERTION_TESTS:
+# Test case 1
+assert 'yes' in result.simple_query("Is there a balloon?").lower(), "Expected output to be a balloon"
+
+Answer:
+def execute_command(image) -> ImagePatch:
+    # Return the balloon
+    image_patch = ImagePatch(image)
+    balloon_patches = image_patch.find("balloon")
+    if len(balloon_patches) == 0:
+        balloon_patches = [image_patch]
+    elif len(balloon_patches) == 1:
+        return balloon_patches[0]
+    leftmost_coordinate = min([patch.horizontal_center for patch in balloon_patches])
+    balloon_patches_right = [patch for patch in balloon_patches if
+                             distance(patch.horizontal_center, leftmost_coordinate) < 100]
+    if len(balloon_patches_right) == 0:
+        balloon_patches_right = balloon_patches
+    balloon_patches_right.sort(key=lambda p: p.vertical_center)
+    balloon_patch = balloon_patches_right[1]
+    # Remember: return the balloon
+    return balloon_patch
+####
+QUERY: lamp on the bottom
+ASSERTION_TESTS:
+# Test case 1
+assert 'yes' in result.simple_query("Is there a lamp?").lower(), "Expected output to be a lamp"
+
+Answer:
+def execute_command(image) -> ImagePatch:
+    # Return the lamp
+    image_patch = ImagePatch(image)
+    lamp_patches = image_patch.find("lamp")
+    # lamp should be in the image - do not need to check for empty list
+    lamp_patches.sort(key=lambda lamp: lamp.vertical_center)
+    # Remember: return the lamp
+    return lamp_patches[0]  # Return the bottommost lamp
+####
+QUERY: girl playing drums
+ASSERTION_TESTS:
+# Test case 1
+assert 'yes' in result.simple_query("Is there a girl?").lower(), "Expected output to be a girl"
+# Test case 2
+assert bool_to_yesno(result.verify_property("girl", "playing drums")), "Expected output to be a girl playing drums"
+
+Answer:
+def execute_command(image) -> ImagePatch:
+    # Return the girl
+    image_patch = ImagePatch(image)
+    girl_patches = image_patch.find("girl")
+    girl_playing_drum_patches = [g for g in girl_patches if g.verify("girl", "playing drums")]
+    if len(girl_playing_drum_patches) == 0:
+        return girl_patches[0]
+    return girl_playing_drum_patches[0]
+####
+QUESTION: white and yellow pants
+ASSERTION_TESTS:
+assert person_patch.exists("person")
+assert person_patch.verify_property("person", "white pants")
+assert person_patch.verify_property("person", "yellow pants")
+
+Answer:
+def execute_command(image) -> ImagePatch:
+    # Return the person
+    image_patch = ImagePatch(image)
+    # Clothing always requires returning the person
+    person_patches = image_patch.find("person")
+    person_patch = best_image_match(person_patches, ["white pants", "yellow pants"])
+    # Remember: return the person
+    return person_patch
+
+#####################
+
+# RESPONSE #
+Provide the function that starts with 'def execute_command(image)' without any explanation.
+
+#####################
+# START GENERATING CODE #
+Generate the the function 'execute_command' for the following << QUERY >> and << ASSERTION_TESTS >>.
+<< QUERY >>: INSERT_QUERY_HERE
+<< ASSERTION_TESTS >>:
+INSERT_ASSERTION_TESTS_HERE
